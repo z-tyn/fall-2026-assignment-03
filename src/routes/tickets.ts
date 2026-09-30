@@ -43,6 +43,7 @@ router.get('/:id', async function(req, res){
         res.status(404).json({error: 'Ticket not found'});
     }
 });
+
 // POST /tickets
 router.post('/', authMiddleware, async function(req, res){
     try {
@@ -86,45 +87,46 @@ router.patch('/:id/status', authMiddleware, async function(req, res){
 
 // TODO: Student implementation - Part 2: Time Log Routes
 // POST /tickets/:id/time
-router.post('/:id/time', authMiddleware, async function(req, res){
-    try {
-        const ticketId = Number(req.params.id);
-        const {hours} = req.body;
-        const userId = res.locals.userId;
+router.post('/:id/time', authMiddleware, async (req, res)=>{
+  try {
+    const ticketId = Number(req.params.id);
+    const { hours } = req.body;
+    const userId = res.locals.userId; 
 
-        if (hours === undefined || isNaN(parseInt(hours))){
-            res.status(400).json({error:'Hours input required'});
-            return;
-        }
+    if (hours === undefined || isNaN(Number(hours))) {
+      res.status(400).json({ error: 'Valid hours value is required' });
+      return;
+    }
 
-        const newLog = await insertTimeLog(ticketId, userId, Number(hours));
-        res.status(201).json(newLog);
+    const newLog = await insertTimeLog(ticketId, userId, Number(hours));
 
-    } catch (error){
-        res.status(400).json({error: 'Failed to log time'});
-    }    
+    res.status(201).json(newLog);
+  } catch (error) {
+    console.error('POST /tickets/:id/time error:', error);
+    res.status(400).json({ error: 'Failed to create time log' });
+  }
 });
 
 // GET /tickets/:id/time
-router.get('/:id/time', async function(req, res){
-    try {
-        const ticketId = Number(req.params.id);
-    
-        if (isNaN(ticketId)){
-            res.status(400).json({error: 'Ticket not valid'});
-            return;
-        }
-    
+router.get('/:id/time', async (req, res) => {
+  try {
+    const ticketId = Number(req.params.id);
+
+    if (isNaN(ticketId)) {
+      res.status(400).json({ error: 'Invalid ticket ID' });
+      return;
+    }
+
     const totalHours = await getTotalHoursForTicket(ticketId);
 
     res.json({
-        ticket_id: ticketId,
-        total_hours: totalHours,
-    })
-    
-    } catch (error){
-        res.status(500).json({error: 'Failed to get total hours'});
-    }
+      ticket_id: ticketId,
+      total_hours: totalHours,
+    });
+  } catch (error) {
+    console.error('GET /tickets/:id/time error:', error);
+    res.status(400).json({ error: 'Failed to retrieve total hours' });
+  }
 });
 
 export default router;

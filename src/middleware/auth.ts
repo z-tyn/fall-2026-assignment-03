@@ -9,12 +9,12 @@ export function authMiddleware(
   // Store the authenticated userId on res.locals.userId
   const userId = req.header('X-User-Id')
 
-  if (!userId || isNaN(parseInt(userId))){
+  if (!userId || isNaN(Number(userId))){
     res.status(401).json({error: 'Unauthorized'});
     return
   }
 
-  res.locals.userId = parseInt(userId);
+  res.locals.userId = Number(userId);
   next();
 }
 

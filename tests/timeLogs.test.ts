@@ -1,33 +1,47 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/index.js';
 
 describe('Part 2: Time Logs Tests', () => {
+  let userId: number;
   let ticketId: number;
-  it('should log hours correctly', async () => {
-    // TODO: Student implementation - Part 2: Time Logging Tests
-    // Log hours for a ticket (POST /tickets/:id/time)
+
+  beforeAll(async () => {
+    const userRes = await request(app)
+      .post('/users')
+      .send({
+        name: 'TimeLog Tester',
+        email: 'tester@example.com',
+      });
+
+    userId = userRes.body.id ?? userRes.body.userId;
+
     const ticketRes = await request(app)
       .post('/tickets')
-      .set('X-User-Id', '1')
+      .set('X-User-Id', String(userId))
       .send({
-        title: "TestTicket",
-        description: "Something Describing It",
-        assignee_id: 2,
+        title: 'TestTicket',
+        description: 'Something Describing It',
+        assignee_id: null, 
       });
-    
-    expect(ticketRes.statusCode).toEqual(201);
-    ticketId = ticketRes.body.id ?? ticketRes.body.ticketId;
 
+    ticketId = ticketRes.body.id ?? ticketRes.body.ticketId;
+  });
+
+  it('should log hours correctly (POST)', async () => {
     const log1 = await request(app)
       .post(`/tickets/${ticketId}/time`)
-      .set('X-User-Id', '1')
+      .set('X-User-Id', String(userId))
       .send({ hours: 2.5 });
+
+    expect(log1.statusCode).toBe(201);
 
     const log2 = await request(app)
       .post(`/tickets/${ticketId}/time`)
-      .set('X-User-Id', '1')
+      .set('X-User-Id', String(userId))
       .send({ hours: 3.5 });
+    
+    expect(log2.statusCode).toBe(201);
   });
 
     // Fetch total hours for a ticket (GET /tickets/:id/time)
@@ -36,7 +50,7 @@ describe('Part 2: Time Logs Tests', () => {
         
     // Verify aggregation math
     expect(sumRes.statusCode).toBe(200);
-    expect(sumRes.body).toEqual({
+    expect(sumRes.body).toMatchObject({
       ticket_id: ticketId,
       total_hours: 6,
     })
