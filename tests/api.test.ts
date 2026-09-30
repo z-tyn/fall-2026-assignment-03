@@ -23,7 +23,7 @@ describe('Part 1: API Integration Tests', () => {
         const userId = createRes.body.id ?? createRes.body.userId;
         const getRes = await request(app).get(`/users/${userId}`);
         expect(getRes.statusCode).toEqual(200);
-        expect(getRes.body).toMatchObject({
+        expect(getRes.body).toEqual({
           name: 'Joe',
           email: 'something@somewhere.com',
         });
