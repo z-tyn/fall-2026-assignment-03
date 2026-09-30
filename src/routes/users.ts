@@ -1,39 +1,50 @@
-import { Router } from 'express';
-import express from 'express';
-
-const router = Router();
-export const app = express();
-app.use(express.json());
-
+import { Router, Request, Response } from 'express';
 import {
     getAllUsers,
     getUserById,
     createUser,
-} from './dal/users.ts';
+} from '../dal/users.js';
 
-import {User} from './db/database.ts';
-import { create } from 'domain';
+const router = Router();
 
 // TODO: Student implementation - Part 1: User Routes
 // GET /users
-app.get('/users', async function(req, res){
-    return getAllUsers();
+router.get('/', async function(req, res) {
+    try {
+        const users = await getAllUsers();
+        res.json(users);
+    } catch (error){
+        res.status(404).json({error: 'Failed to get users'});
+    }
 });
 
 // GET /users/:id
-app.get('/users/:id', async function(req, res){
+router.get('/:id', async function(req, res){
     try {
-        return getUserById(req);
-    } catch {
+        const userId = Number(req.params.id);
+        const user = await getUserById(userId);
+
+        if (!user){
+            res.status(404).json({error: 'ID not found'});
+            return
+        }
+
+        res.json(user);
+
+    } catch (error){
         res.status(404).json({error: 'ID not found'});
-        return;
     }
 });
 
 // POST /users
-app.post('/users', async function(req, res){
-    const newUser = createUser(req);
-    res.status(201).json(newUser);
+router.post('/', async function(req, res){
+    try {
+        const {name, email} = req.body;
+        const newUser = await createUser({name, email});
+        res.status(201).json(newUser);
+    } catch (error){
+        res.status(404).json({error: 'Failed to create user'});
+    }
 });
 
 export default router;
